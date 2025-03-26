@@ -1,0 +1,20 @@
+[background-block=#00367c][center]
+[img]https://i.imgur.com/82weXh0.png[/img]
+[/center][/background-block][background-block=#e3c235][center][color=#e3c235].[/color]
+[font=DIN Condensed][size=190][url=page=dispatch/id=2503928][color=#fff]Home[/color][/url] [color=#00367c]/[/color] [url=page=dispatch/id=2503929][color=#fff]Endorsement Caps[/color][/url] [color=#00367c]/[/color] [url=page=dispatch/id=2503930][color=#fff]Endotarting[/color][/url] [color=#00367c]/[/color] [url=page=dispatch/id=2503931][color=#fff]FAQ[/color][/url][/size][/font]
+[color=#e3c235].[/color][/center][/background-block]
+[box]
+[center][font=DIN Condensed][size=240][b]Please Endorse Our Delegate![/b][/size][/font][/center]
+[font=DIN Condensed Light][size=150]The [url=https://www.nationstates.net/page=dispatch/id=2503928][color=#e3c235][b]Regional Security Council[/b][/color][/url] requests that you please [b]endorse our World Assembly Delegate, [nation]UPC[/nation][/b].
+
+Endorsing Delegate [nation]UPC[/nation] is crucial for increasing Europeia's power on the world stage and growing our region's prestige. Each endorsement of our Delegate gives Europeia a larger say on World Assembly resolutions.
+
+Additionally, endorsing Delegate [nation]UPC[/nation] and all members of the [url=https://www.nationstates.net/page=dispatch/id=2503928][color=#e3c235][b]Regional Security Council[/b][/color][/url] is important for safeguarding our region against threats, be they external or internal. 
+
+Thank you for helping us keep Europeia safe and prosperous by [b]endorsing Delegate [nation]UPC[/nation][/b]![/size][/font][/box]
+[background-block=#00367c]
+.
+[align=center][font=DIN Condensed Light][color=#fff]This dispatch is maintained by [/color][url=nation=upc][color=#e3c235][b]UPC[/b][/color][/url][color=#fff] on behalf of Europeia's Regional Security Council.
+[hr][/color] [url=page=dispatch/id=2503931#contact][color=#fff]Contact Us[/color][/url] [color=#fff]/[/color] [url=https://tart.nsupc.dev][color=#fff]Endotart[/color][/url] [color=#fff]/[/color] [url=https://www.nationstates.net/page=dispatch/id=1552024][color=#fff]Learn More About Europeia[/color][/url][/font][/align]
+.
+[/background-block]
