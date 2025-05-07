@@ -14,9 +14,9 @@ class LogConfig:
     endpoint: str
     level: str
 
-    def __init__(self, token: str, host: str, level: str = "INFO"):
+    def __init__(self, token: str, endpoint: str, level: str = "INFO"):
         self.token = token
-        self.host = host
+        self.endpoint = endpoint
         if level.upper() in ["DEBUG", "INFO", "WARNING", "ERROR"]:
             self.level = level.upper()
         else:
