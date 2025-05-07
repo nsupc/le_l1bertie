@@ -1,88 +1,79 @@
-import argparse
 import logging
 import logging.config
 import requests
 import time
+import yaml
 
 from bs4 import BeautifulSoup as bs
-from typing import List, Literal
+from logtail import LogtailHandler
+from typing import List, Optional
 
 
-class Cli:
+class LogConfig:
+    token: str
+    endpoint: str
+    level: str
+
+    def __init__(self, token: str, host: str, level: str = "INFO"):
+        self.token = token
+        self.host = host
+        if level.upper() in ["DEBUG", "INFO", "WARNING", "ERROR"]:
+            self.level = level.upper()
+        else:
+            self.level = "INFO"
+
+        handler = LogtailHandler(
+            source_token=self.token,
+            host=self.endpoint,
+        )
+
+        logger = logging.getLogger()
+        logger.setLevel(self.level)
+        logger.addHandler(handler)
+
+
+class Eurocore:
+    url: str
+    user: str
+    password: str
+
+    def __init__(self, url: str, user: str, password: str):
+        self.url = url
+        self.user = user
+        self.password = password
+
+        self.url = self.url.strip("/")
+
+
+class Config:
+    user: str
     region: str
-    delegate: str
-    eurocore_url: str
-    eurocore_user: str
-    eurocore_password: str
+    delegate: Optional[str]
     dispatch_id: int
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"]
+    eurocore: Eurocore
+    log: LogConfig
 
+    def __init__(self, path: Optional[str] = None):
+        if not path:
+            path = "./config.yml"
 
-def parse_args() -> Cli:
-    parser = argparse.ArgumentParser(
-        description="le l1bertie: a eurocore helper script to refresh an nne dispatch"
-    )
+        with open(path, "r") as in_file:
+            data = yaml.safe_load(in_file)
 
-    parser.add_argument(
-        "-r",
-        "--region",
-        type=str,
-        required=True,
-        help="region to check for nations not endorsing [delegate]",
-    )
+        self.user = data["user"]
+        self.region = data["region"]
+        self.delegate = data.get("delegate")
+        self.dispatch_id = data["dispatch_id"]
 
-    parser.add_argument(
-        "-d",
-        "--delegate",
-        type=str,
-        required=True,
-        help="desired delegate/target nation",
-    )
+        self.eurocore = Eurocore(
+            data["eurocore"]["url"],
+            data["eurocore"]["user"],
+            data["eurocore"]["password"],
+        )
 
-    parser.add_argument(
-        "-e",
-        "--eurocore-url",
-        type=str,
-        required=True,
-        help="base url of eurocore instance",
-    )
-
-    parser.add_argument(
-        "-u", "--eurocore-user", type=str, required=True, help="eurocore username"
-    )
-
-    parser.add_argument(
-        "-p",
-        "--eurocore-password",
-        type=str,
-        required=True,
-        help="eurocore user password",
-    )
-
-    parser.add_argument(
-        "-i",
-        "--dispatch-id",
-        type=int,
-        required=True,
-        help="NS dispatch ID for NNE to refresh",
-    )
-
-    parser.add_argument(
-        "-l",
-        "--log-level",
-        type=str,
-        required=False,
-        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        default="INFO",
-    )
-
-    cli = parser.parse_args(namespace=Cli)
-
-    cli.region = cli.region.strip().lower().replace(" ", "_")
-    cli.delegate = cli.delegate.strip().lower().replace(" ", "_")
-    cli.eurocore_url = cli.eurocore_url.strip("/")
-
-    return cli
+        self.log = LogConfig(
+            data["log"]["token"], data["log"]["endpoint"], data["log"]["level"]
+        )
 
 
 def get_nations_not_endorsing(user: str, region: str, delegate: str) -> List[str]:
@@ -163,21 +154,21 @@ def refresh_nne(url: str, token: str, id: int, nations: List[str]):
 
 
 def main():
-    cli = parse_args()
-    logging.config.fileConfig("logging.conf")
-    logging.getLogger().setLevel(cli.log_level)
+    config = Config("./config.yml")
 
-    nations = get_nations_not_endorsing(cli.eurocore_user, cli.region, cli.delegate)
+    nations = get_nations_not_endorsing(
+        config.eurocore.user, config.region, config.delegate
+    )
     logging.info(
         "number of wa nations in %s not endorsing %s: %d",
-        cli.region,
-        cli.delegate,
+        config.region,
+        config.delegate,
         len(nations),
     )
 
-    token = login(cli.eurocore_url, cli.eurocore_user, cli.eurocore_password)
+    token = login(config.eurocore.url, config.eurocore.user, config.eurocore.password)
 
-    refresh_nne(cli.eurocore_url, token, cli.dispatch_id, nations)
+    refresh_nne(config.eurocore.url, token, config.dispatch_id, nations)
 
 
 if __name__ == "__main__":
