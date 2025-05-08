@@ -8,26 +8,33 @@ from bs4 import BeautifulSoup as bs
 from logtail import LogtailHandler
 from typing import List, Optional
 
+logger = logging.getLogger("main")
+
 
 class LogConfig:
-    token: str
-    endpoint: str
+    token: Optional[str]
+    endpoint: Optional[str]
     level: str
 
-    def __init__(self, token: str, endpoint: str, level: str = "INFO"):
-        self.token = token
-        self.endpoint = endpoint
+    def __init__(
+        self, token: Optional[str], endpoint: Optional[str], level: str = "INFO"
+    ):
         if level.upper() in ["DEBUG", "INFO", "WARNING", "ERROR"]:
             self.level = level.upper()
         else:
             self.level = "INFO"
 
-        handler = LogtailHandler(
-            source_token=self.token,
-            host=self.endpoint,
-        )
+        self.token = token
+        self.endpoint = endpoint
 
-        logger = logging.getLogger()
+        if self.token and self.endpoint:
+            handler = LogtailHandler(
+                source_token=self.token,
+                host=self.endpoint,
+            )
+        else:
+            handler = logging.StreamHandler()
+
         logger.setLevel(self.level)
         logger.addHandler(handler)
 
@@ -72,18 +79,37 @@ class Config:
         )
 
         self.log = LogConfig(
-            data["log"]["token"], data["log"]["endpoint"], data["log"]["level"]
+            data["log"].get("token"), data["log"].get("endpoint"), data["log"]["level"]
         )
+
+
+def get_delegate(user: str, region: str) -> str:
+    headers = {"User-Agent": user}
+
+    logger.debug("fetching delegate from %s", region)
+    delegate = (
+        bs(
+            requests.get(
+                f"https://www.nationstates.net/cgi-bin/api.cgi?region={region}&q=delegate",
+                headers=headers,
+            ).text,
+            "xml",
+        )
+        .find("DELEGATE")
+        .text
+    )
+
+    return delegate
 
 
 def get_nations_not_endorsing(user: str, region: str, delegate: str) -> List[str]:
     headers = {"User-Agent": user}
 
-    logging.debug("retrieving wa nations from %s", region)
+    logger.debug("retrieving wa nations from %s", region)
     wa_nations = (
         bs(
             requests.get(
-                "https://www.nationstates.net/cgi-bin/api.cgi?region=europeia&q=wanations",
+                f"https://www.nationstates.net/cgi-bin/api.cgi?region={region}&q=wanations",
                 headers=headers,
             ).text,
             "xml",
@@ -94,11 +120,11 @@ def get_nations_not_endorsing(user: str, region: str, delegate: str) -> List[str
 
     time.sleep(1)
 
-    logging.debug("retrieving delegate endorsements for %s", delegate)
+    logger.debug("retrieving delegate endorsements for %s", delegate)
     delegate_endorsements = (
         bs(
             requests.get(
-                "https://www.nationstates.net/cgi-bin/api.cgi?nation=upc&q=endorsements",
+                f"https://www.nationstates.net/cgi-bin/api.cgi?nation={delegate}&q=endorsements",
                 headers=headers,
             ).text,
             "xml",
@@ -119,7 +145,7 @@ def login(url: str, user: str, password: str) -> str:
 
     data = {"username": user, "password": password}
 
-    logging.debug("fetching token from %s", url)
+    logger.debug("fetching token from %s", url)
     token = requests.post(url=url, json=data).json()["token"]
 
     return token
@@ -144,22 +170,25 @@ def refresh_nne(url: str, token: str, id: int, nations: List[str]):
     )
 
     resp = requests.put(url, headers=headers, json=data)
-    logging.info("dispatch ping status code: %d", resp.status_code)
+    logger.info("dispatch ping status code: %d", resp.status_code)
 
     with open("dispatch.txt", "r") as in_file:
         data["text"] = in_file.read()
 
     resp = requests.put(url, headers=headers, json=data)
-    logging.info("dispatch reset status code: %d", resp.status_code)
+    logger.info("dispatch reset status code: %d", resp.status_code)
 
 
 def main():
     config = Config("./config.yml")
 
+    if not config.delegate:
+        config.delegate = get_delegate(config.user, config.region)
+
     nations = get_nations_not_endorsing(
         config.eurocore.user, config.region, config.delegate
     )
-    logging.info(
+    logger.info(
         "number of wa nations in %s not endorsing %s: %d",
         config.region,
         config.delegate,

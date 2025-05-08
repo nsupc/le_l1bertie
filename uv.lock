@@ -81,7 +81,7 @@ wheels = [
 ]
 
 [[package]]
-name = "le-l1bertie"
+name = "le_l1bertie"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
